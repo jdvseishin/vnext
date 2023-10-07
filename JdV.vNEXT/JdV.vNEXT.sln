@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdV.vNEXT.Function", "JdV.vNEXT.Function\JdV.vNEXT.Function.csproj", "{B6FA3C60-C2A5-4D5E-8D7D-669324CB400D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B6FA3C60-C2A5-4D5E-8D7D-669324CB400D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6FA3C60-C2A5-4D5E-8D7D-669324CB400D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6FA3C60-C2A5-4D5E-8D7D-669324CB400D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6FA3C60-C2A5-4D5E-8D7D-669324CB400D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {156EEF7B-F3D9-4C6C-A257-2F97F0AC10C3}
+	EndGlobalSection
+EndGlobal
