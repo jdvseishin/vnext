@@ -1,20 +1,10 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
-
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
-
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
-
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+This project is for the vNEXT Technical Assessment, which includes the following:
+- JdV.vNEXT.Function - Azure Function app project based on the requirements specified
+- Deployment Files
+  - main.bicep - Main bicep template to deploy all the Azure resources required for the application
+  - full-deployment-pipeline.yml - Pipeline definition that will run and deploy all the resources in Azure DevOps
+  - addfirewallrule.ps1 - Powershell script to temporarily add agent IP to connect to the Azure SQL Server during deployment
+  - removefirewallrule.ps1 - Powershell script to remove the firewall rule created from addfirewallrule.ps1
+  - createtable.ps1 - Powershell script that deploys the CreateDeviceTable script
+  - CreateDeviceTable.sql - Script to deploy and create the table used by the Function App into the Azure SQL Database

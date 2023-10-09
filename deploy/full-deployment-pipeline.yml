@@ -1,0 +1,123 @@
+  variables:
+    deploymentDefaultLocation: australiaeast
+    workingDirectory: '$(System.DefaultWorkingDirectory)/JdV.vNEXT.Function'
+
+  stages:
+  - stage: ResourceDeployment
+    displayName: 'Deployment Stage'
+
+    jobs:
+    - job: Deployment
+      displayName: 'Azure Resources Deployment'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+      - task: AzureResourceManagerTemplateDeployment@3
+        displayName: 'Deploying Azure SQL Server, Azure SQL Database and Azure Function'
+        inputs:
+          connectedServiceName: $(ServiceConnectionName)
+          deploymentName: $(Build.BuildNumber)
+          location: $(deploymentDefaultLocation)
+          resourceGroupName: $(ResourceGroupName)
+          csmFile: deploy/main.bicep
+          overrideParameters: >
+            -sqlServerName $(SQLServerName)
+            -sqlDBName $(SQLDBName)
+            -adminUsername $(AdminUsername)
+            -adminPassword $(AdminPassword)
+            -appName $(AppName)
+
+  - stage: SQLScript
+    displayName: 'SQL Script Stage'
+    dependsOn: ResourceDeployment
+    condition: succeeded()
+
+    jobs:
+    - job: SQLScript
+      displayName: 'SQL Script Execution'
+      pool:
+        vmImage: windows-latest
+      steps:
+      - task: AzurePowerShell@5
+        displayName: 'Set Azure Firewall Rule'
+        inputs:
+          azureSubscription: '$(AzureSubscription)'
+          ScriptType: filePath
+          ScriptPath: 'deploy/addfirewallrule.ps1'
+          ScriptArguments: '-ServerName $(SQLServerName) -ResourceGroupName $(ResourceGroupName)'
+          azurePowerShellVersion: LatestVersion
+
+      - task: PowerShell@2
+        displayName: 'Create Devices Table If Not Exists'
+        inputs:
+          targetType: 'filePath'
+          filePath: deploy/createtable.ps1
+          arguments: > # Use this to avoid newline characters in multiline string
+            -serverInstance '$(SQLServerName).database.windows.net'
+            -databaseName '$(SQLDBName)'
+            -username '$(AdminUsername)'
+            -pwd '$(AdminPassword)'
+
+      - task: AzurePowerShell@5
+        displayName: 'Remove Azure Firewall Rule'
+        inputs:
+          azureSubscription: '$(AzureSubscription)'
+          ScriptType: filePath
+          ScriptPath: 'deploy/removefirewallrule.ps1'
+          ScriptArguments: '-ServerName $(SQLServerName) -ResourceGroupName $(ResourceGroupName)'
+          azurePowerShellVersion: LatestVersion
+
+  - stage: FunctionBuild
+    displayName: 'Function Build Stage'
+    dependsOn: SQLScript
+    condition: succeeded()
+    pool:
+      vmImage: windows-latest
+
+    jobs:
+    - job: FunctionBuild
+      displayName: 'Build Azure Function Project'
+
+      steps:
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          command: 'build'
+          projects: |
+            $(workingDirectory)/*.csproj
+          arguments: --output $(System.DefaultWorkingDirectory)/publish_output --configuration Release
+
+      - task: ArchiveFiles@2
+        displayName: 'Archive files'
+        inputs:
+          rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
+          includeRootFolder: false
+          archiveType: zip
+          archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+          replaceExistingArchive: true
+
+      - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        artifact: drop
+
+  - stage: FunctionDeploy
+    displayName: 'Function Deployment Stage'
+    dependsOn: FunctionBuild
+    condition: succeeded()
+
+    jobs:
+    - deployment: FunctionDeploy
+      displayName: FunctionDeploy
+      environment: 'development'
+
+      strategy:
+        runOnce:
+          deploy:
+
+            steps:
+            - task: AzureFunctionApp@1
+              displayName: 'Azure functions app deploy'
+              inputs:
+                azureSubscription: '$(AzureSubscription)'
+                appType: functionApp
+                appName: $(AppName)
+                package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
